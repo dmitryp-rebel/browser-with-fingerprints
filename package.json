@@ -58,6 +58,7 @@
     "win32"
   ],
   "dependencies": {
+    "@vscode/windows-mutex": "^0.4.4",
     "async-lock": "1.4.0",
     "bas-remote-node": "1.5.1",
     "chrome-remote-interface": "0.33.0",

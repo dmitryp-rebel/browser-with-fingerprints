@@ -1,9 +1,10 @@
-const mutex = require('./mutex');
+//const mutex = require('./mutex');
 const cleaner = require('./cleaner');
 const launcher = require('./launcher');
 const { configure, synchronize } = require('./config');
 const { setup, fetch, versions, setEngineOptions } = require('./connector');
 const { defaultArgs, getProfilePath, validateConfig, validateLauncher } = require('./utils');
+const { Mutex, isActive } = require('@vscode/windows-mutex');
 
 module.exports = class FingerprintPlugin {
   static create(launcher) {
@@ -78,7 +79,14 @@ module.exports = class FingerprintPlugin {
 
     await cleaner.run(path).ignore(pid, id);
 
-    mutex.create(`BASProcess${pid}`);
+    // todo: it is not clear what is purpoe of this mutex.
+    //  I do not see reason that it is locked and need to be waited as it is based on processID.
+    //  But it is not released and result to deadlock if process ID is reused by OS.
+    //  Below approach some simplistic workaround. Can be improved with elimination mutex or proper release call.
+    //  Another solution exception if mutex is active instead of continue;
+    const mutexName = `BASProcess${pid}`
+    if (!isActive(mutexName)) new Mutex(mutexName)
+    //mutex.create(`BASProcess${pid}`);
 
     const browser = await (spawn ? launcher : options.launcher ?? this.launcher).launch({
       ...options,
